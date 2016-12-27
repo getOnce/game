@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta name="keywords" content="html5 canvas 粒子 逃脱" />
+    <meta name="description" content="html5 粒子逃脱游戏" />
+    <title>Hold on</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="yes" name="apple-touch-fullscreen"/>
+    <meta content="telephone=no,email=no" name="format-detection"/>
+    <meta name="apple-touch-fullscreen" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+<body>
+   <div id='js-container'>
+       <canvas id='js-canvas'>当前浏览器不支持canvas标签...</canvas>
+       <div>
+           <input type="button" value='CLICK ME!!!' id='js-switch'/>
+       </div>
+   </div>
+   <script src='Tween.js'></script>
+    <script>
+    const raf = window.requestAnimationFrame
+              || window.webkitRequestAnimationFrame
+              || window.mozRequestAnimationFrame
+              || window.oRequestAnimationFrame
+              || window.msRequestAnimationFrame
+              || function(callback) {
+                return window.setTimeout(callback, 1000 / 60);
+              };
+    const cRaf = window.cancelRequestAnimationFrame
+              || window.webkitCancelRequestAnimationFrame
+              || window.mozCancelRequestAnimationFrame
+              || window.oCancelRequestAnimationFrame
+              || window.msCancelRequestAnimationFrame
+              || function(callback) {
+                return window.clearTimeout(callback);
+              };          
+
+    var $canvas = document.querySelector('#js-canvas'),
+        ctx = $canvas.getContext('2d');
+    $canvas.width = 300;
+    $canvas.height = 300;
+    var util = {
+        $el: $canvas,
+        ctx: ctx,
+        height: ctx.height,
+        width: ctx.width,
+        style: 'black',
+        clear: function(){
+            this.ctx.clearRect(0, 0, this.width, this.height);
+            return this;
+        },
+        fillStyle: function(style){
+            this.ctx.fillStyle = style || this.style;
+            return this;
+        },
+        fillRect: function(width, height, x, y){
+            this.ctx.fillRect(
+                x || 0, 
+                y || 0, 
+                width || this.width, 
+                height || this.height);
+            return this;
+        },
+        render: function(){
+            this
+                .clear()
+                .fillStyle()
+                .fillRect();
+        }
+    }
+    var point = {
+        $el: $canvas,
+        ctx: ctx,
+        x: 40,
+        y: 130,
+        radius: 10,
+        color: 'rgba(255, 0, 0, 0.7)',
+        render: function(){
+            var me = this;
+            me.ctx.beginPath();
+            me.ctx.fillStyle = me.color;
+            me.ctx.arc(me.x, me.y, me.radius, 0, Math.PI*2, false);
+            me.ctx.fill();
+            me.ctx.closePath();
+            return me;
+        },
+        speed: 2,
+        update: function(){
+            var me = this;
+            me.x += me.speed;
+            return me;
+        }
+    }   
+    var animate = {
+        cancelRaf: function(){
+            const cRaf = window.cancelRequestAnimationFrame
+              || window.webkitCancelRequestAnimationFrame
+              || window.mozCancelRequestAnimationFrame
+              || window.oCancelRequestAnimationFrame
+              || window.msCancelRequestAnimationFrame
+              || function(callback) {
+                return window.clearTimeout(callback);
+              };
+             return cRaf 
+        },
+        raf: raf,
+        stop: function(raf){
+            this.cancelRaf(raf || this.raf);
+            return this;
+        },
+        render: function(){
+            //util.render();
+            line.render();
+            //point.render();
+        },
+        begin: function(){
+            this.raf(this.render);
+        },
+        init: function(){
+            this.render();
+            return this;
+        }
+    }
+    var line = {
+        $el: $canvas,
+        ctx: ctx,
+        x: 0,
+        y: 140,
+        data: [
+            {
+                color: 'red',
+            },
+            {
+                color: 'blue',
+            },
+            {
+                color: 'orange'
+            },
+            {
+                color: 'yellow'
+            },
+            {
+                color: 'purple'
+            }
+        ],
+        pos: [
+            {
+                ox: 0,
+                oy: 140,
+                x: 60,
+                y: 140
+            },
+            {
+                ox: 60,
+                oy: 140,
+                x: 120,
+                y: 140
+            },
+            {
+                ox: 120,
+                oy: 140,
+                x: 180,
+                y: 140
+            },
+            {
+                ox: 180,
+                oy: 140,
+                x: 240,
+                y: 140
+            },
+            {
+                ox: 240,
+                oy: 140,
+                x: 300,
+                y: 140
+            }
+        ],
+        temp:[],
+        fillStyle: function(color){
+            this.ctx.fillStyle = color;
+            return this;
+        },
+        strokeStyle: function(color){
+            this.ctx.strokeStyle = color;
+            return this;
+        },
+        moveTo: function(x, y){
+            this.ctx.moveTo(
+                typeof(x) == 'number'? x: this.origin.x , 
+                typeof(y) == 'number'? y: this.origin.y);
+            return this;
+        },
+        lineTo: function(x, y){
+            this.ctx.lineTo(x, y);
+            return this;
+        },
+        linesTo: function(){
+            var me = this;
+            var n = Math.round(Math.random() * 10) % 5;
+            // this.temp.forEach(function(item, index, array){
+                
+                
+            //     me
+            //         .beginPath()
+            //         .strokeStyle(me['data'][n]['color'])
+            //         .lineTo(item.x, item.y)
+            //         .stroke()
+            //         .closePath()
+            //         .moveTo(item.x, item.y)
+                    
+                    
+            // });
+            
+            return this;
+        },
+        stroke: function(){
+            this.ctx.stroke();
+            return this;
+        },
+        closePath: function(){
+            this.ctx.closePath();
+            return this;
+        },
+        beginPath: function(){
+            this.ctx.beginPath();
+            return this;
+        },
+        render: function(){
+            this.temp = this.data.slice(0);
+            console.log(this.temp)
+            this.linesTo();
+            
+            return this;
+        }
+    }
+    animate.init();
+    document.querySelector('#js-switch').addEventListener('click', function(){
+        //2000毫秒到最高与最低
+        /**
+        *t: current time（当前时间）；
+        *b: beginning value（初始值）；
+        *c: change in value（变化量）；
+        *d: duration（持续时间）。
+        */
+        
+        var upCurrent = 0,
+            downCurrent = 0,
+            value = 130,
+            upCValue = -100,
+            downCValue = 100,
+            duration = 20,
+            timer = 1;
+
+        function up(){
+            
+            point.y = Tween.Quint.easeOut(upCurrent, 130, upCValue, duration);
+            point.y = 30;
+            animate.render();
+            line.render();
+            var cancelraf = raf(up);
+            if(upCurrent == 20){
+                cRaf(cancelraf);
+                upCurrent = 0;
+                down();
+                return false;
+            }
+            if(point.y <= 30){
+                point.y = 30;
+                upCurrent = 0;
+                cRaf(cancelraf);
+                down();
+                return false;
+            }
+            if(point.y > 30){
+                upCurrent += timer;
+            }
+        }
+        function down(){
+            point.y = Tween.Quint.easeIn(downCurrent, 30, downCValue, duration);
+            animate.render();
+            line.render();
+            var cancelraf = raf(down);
+            if(downCurrent == 20){
+                cRaf(cancelraf);
+                downCurrent = 0;
+            }
+            if(point.y >= 130){
+                cRaf(cancelraf);
+                point.y = 130;
+                animate.render();
+                return false;
+            }
+            if(point.y < 130){
+                downCurrent += timer;
+            }
+        }
+        up();
+        
+    }, false);
+    </script>
+</body>
+</html>
+
+
+
+
+
