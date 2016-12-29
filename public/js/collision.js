@@ -15,29 +15,29 @@ let collision = {
     *(x1 - x0) * (y0 - y1) > 0; 
     */
     check(A, B, C, D, E, F, G, H) {
-      // 转为对角线坐标
-      C += A, 
-      D += B, 
-      G += E, 
-      H += F;
-      // 没有相交
-      if (C <= E || G <= A || D <= F || H <= B)
-        return [0, 0, 0, 0];
+        // 转为对角线坐标
+        C += A, 
+        D += B, 
+        G += E, 
+        H += F;
+        // 没有相交
+        if (C <= E || G <= A || D <= F || H <= B)
+          return [0, 0, 0, 0];
 
-      var tmpX, tmpY;
+        var tmpX, tmpY;
 
-      if (E > A) {
-       tmpX = G < C ? [E, G] : [E, C];
-      } else {
-       tmpX = C < G ? [A, C] : [A, G];
-      }
+        if (E > A) {
+         tmpX = G < C ? [E, G] : [E, C];
+        } else {
+         tmpX = C < G ? [A, C] : [A, G];
+        }
 
-      if (F > B) {
-       tmpY = H < D ? [F, H] : [F, D];
-      } else {
-       tmpY = D < H ? [B, D] : [B, H];
-      }
-      return [tmpX[0], tmpY[0], tmpX[1], tmpY[1]];
+        if (F > B) {
+         tmpY = H < D ? [F, H] : [F, D];
+        } else {
+         tmpY = D < H ? [B, D] : [B, H];
+        }
+        return [tmpX[0], tmpY[0], tmpX[1], tmpY[1]];
     },
     /**
     *像素级检测
@@ -60,31 +60,31 @@ let collision = {
     */
     atomCheck(a, b, rect){
     	 // 离屏 canvas
-		let canvas = document.createElement('canvas'),
-			_ctx = canvas.getContext('2d');
+  		let canvas = document.createElement('canvas'),
+  			_ctx = canvas.getContext('2d');
 
-		_ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
-		// 相对位置
-		let data1 = _ctx.getImageData(rect[0] - a.pos.x, 
-			rect[1] - a.pos.y, 
-			rect[2] - rect[0], 
-			rect[3] - rect[1]).data;
+  		_ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
+  		// 相对位置
+  		let data1 = _ctx.getImageData(rect[0] - a.pos.x, 
+  			rect[1] - a.pos.y, 
+  			rect[2] - rect[0], 
+  			rect[3] - rect[1]).data;
 
-		_ctx.clearRect(0, 0, b.size.x, b.size.y);
-		_ctx.drawImage(b.img, 0, 0, b.size.x, b.size.y);
+  		_ctx.clearRect(0, 0, b.size.x, b.size.y);
+  		_ctx.drawImage(b.img, 0, 0, b.size.x, b.size.y);
 
-		let data2 = _ctx.getImageData(rect[0] - b.pos.x, 
-			rect[1] - b.pos.y, 
-			rect[2] - rect[0], 
-			rect[3] - rect[1]).data;
+  		let data2 = _ctx.getImageData(rect[0] - b.pos.x, 
+  			rect[1] - b.pos.y, 
+  			rect[2] - rect[0], 
+  			rect[3] - rect[1]).data;
 
-		canvas = null;
+  		canvas = null;
 
-		  for(let i = 3; i < data1.length; i += 4) {
-		    if(data1[i] > 0 && data2[i] > 0) 
-		      return true; // 碰撞
-		  }
-		  return false;
+  		  for(let i = 3; i < data1.length; i += 4) {
+  		    if(data1[i] > 0 && data2[i] > 0) 
+  		      return true; // 碰撞
+  		  }
+  		  return false;
     },
     /**
     *像素级检测方法2
@@ -115,6 +115,8 @@ let collision = {
 		  // 将 (0, 0) 作为基准点，将 a 放入 (0, 0) 位置
 		_ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
 		_ctx.globalCompositeOperation = 'source-in';
+    console.log('a.size.x:' + a.size.x);
+    console.log('a.size.y:' + a.size.y);
 		_ctx.drawImage(b.img, b.pos.x - a.pos.x, 
 			b.pos.y - a.pos.y, 
 			b.size.x, b.size.y);

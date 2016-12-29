@@ -190,31 +190,46 @@ const main = {
 
 		//碰撞检测
 		if(barrier.ready && role.ready){
-			var result = collision.atomCheck(
-				{
-					img: role.img,
-					pos: {
-						x: role.x,
-						y: role.y
-					},
-					size: {
-						x: role.width,
-						x: role.height,
-					}
-				}, 
-				{
-					img: barrier.img,
-					pos: {
-						x: barrier.x,
-						y: barrier.y
-					},
-					size: {
-						x: barrier.width,
-						y: barrier.height,
-					}
-				}, 
-				collision.check());
-			console.log(result);
+			let status = collision.check(role.x,
+						 role.y, 
+						 role.width, 
+						 role.height,
+						 barrier.x,
+						 barrier.y,
+						 barrier.width,
+						 barrier.height);
+			if(status.join('') != '0000' ){
+
+				let result = collision.atomCheck_2(
+								{
+									img: role.img,
+									pos: {
+										x: role.x,
+										y: role.y
+									},
+									size: {
+										x: role.width,
+										y: role.height,
+									}
+								}, 
+								{
+									img: barrier.img,
+									pos: {
+										x: barrier.x,
+										y: barrier.y
+									},
+									size: {
+										x: barrier.width,
+										y: barrier.height,
+									}
+								},
+								status);
+
+				if(result){
+					return false;
+				}							
+			}
+			
 		}
 		
 
