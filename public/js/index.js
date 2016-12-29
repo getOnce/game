@@ -2,6 +2,7 @@ import {Map} from './Map';
 import {Player} from './Player';
 import {Line} from './Line';
 import {Tween} from './Tween';
+import {collision} from './collision';
 import {util} from './util';
 const $ = util.$;
 
@@ -186,6 +187,37 @@ const main = {
 				height: main_settings.barrierHeight//可选。要使用的图像的高度。（伸展或缩小图像）
 			});
 		}
+
+		//碰撞检测
+		if(barrier.ready && role.ready){
+			var result = collision.atomCheck(
+				{
+					img: role.img,
+					pos: {
+						x: role.x,
+						y: role.y
+					},
+					size: {
+						x: role.width,
+						x: role.height,
+					}
+				}, 
+				{
+					img: barrier.img,
+					pos: {
+						x: barrier.x,
+						y: barrier.y
+					},
+					size: {
+						x: barrier.width,
+						y: barrier.height,
+					}
+				}, 
+				collision.check());
+			console.log(result);
+		}
+		
+
 		//帧动画
 		main_settings.crf = util.raf(function(){
 			me.renderAll();

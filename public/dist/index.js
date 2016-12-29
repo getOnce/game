@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "634c1ad20dc085889009"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "8c1501b6420c935beba0"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -8492,7 +8492,11 @@
 
 	var _Tween = __webpack_require__(85);
 
-	var _util = __webpack_require__(86);
+	var _collision = __webpack_require__(86);
+
+	var _util = __webpack_require__(87);
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 	var $ = _util.util.$;
 
@@ -8650,6 +8654,32 @@
 					height: main_settings.barrierHeight //可选。要使用的图像的高度。（伸展或缩小图像）
 				});
 			}
+
+			//碰撞检测
+			if (barrier.ready && role.ready) {
+				var result = _collision.collision.atomCheck({
+					img: role.img,
+					pos: {
+						x: role.x,
+						y: role.y
+					},
+					size: _defineProperty({
+						x: role.width
+					}, 'x', role.height)
+				}, {
+					img: barrier.img,
+					pos: {
+						x: barrier.x,
+						y: barrier.y
+					},
+					size: {
+						x: barrier.width,
+						y: barrier.height
+					}
+				}, _collision.collision.check());
+				console.log(result);
+			}
+
 			//帧动画
 			main_settings.crf = _util.util.raf(function () {
 				me.renderAll();
@@ -9294,6 +9324,141 @@
 
 /***/ },
 /* 86 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var collision = {
+	  /**
+	     *检查两个图像是否有相交的部分，<检测规则矩形>
+	     *@param A {number} 矩形一左上角顶点坐标x值
+	     *@param B {number} 矩形一左上角顶点坐标y值
+	     *@param C {number} 矩形一宽度width
+	     *@param D {number} 矩形一高度height
+	     *@param E {number} 矩形二左上角顶点坐标x值
+	     *@param F {number} 矩形二左上角顶点坐标y值
+	     *@param G {number} 矩形二宽度width
+	     *@param H {number} 矩形二高度height
+	     *@condition 如果相交，假设相交矩形对角坐标 左上角点坐标(x0, y0) 右下角点坐标(x1, y1) -- x1 > x0 & y1 > y0
+	     *@return [x0, y0, x1, y1]
+	     *相交面积大于 0 即为碰撞
+	     *(x1 - x0) * (y0 - y1) > 0; 
+	     */
+	  check: function check(A, B, C, D, E, F, G, H) {
+	    // 转为对角线坐标
+	    C += A, D += B, G += E, H += F;
+	    // 没有相交
+	    if (C <= E || G <= A || D <= F || H <= B) return [0, 0, 0, 0];
+
+	    var tmpX, tmpY;
+
+	    if (E > A) {
+	      tmpX = G < C ? [E, G] : [E, C];
+	    } else {
+	      tmpX = C < G ? [A, C] : [A, G];
+	    }
+
+	    if (F > B) {
+	      tmpY = H < D ? [F, H] : [F, D];
+	    } else {
+	      tmpY = D < H ? [B, D] : [B, H];
+	    }
+	    return [tmpX[0], tmpY[0], tmpX[1], tmpY[1]];
+	  },
+
+	  /**
+	  *像素级检测
+	  *@thoery 同时检测两图在相交矩形内的像素，若存在一点在两个图上的 alpha 值不为 0，则发生碰撞。
+	  *@param a {object} 
+	  	被检测的对象 :
+	  	{
+	  		img: img dom元素<即两个碰撞物其中一个>, 
+	  		pos: {x: 坐标x, y: 坐标y}, 
+	  		size:{x: width, y: height}
+	  	}
+	  *@param b{object}	
+	  	被检测的对象 :
+	  	{
+	  		img: img dom元素<即两个碰撞物其中一个>, 
+	  		pos: {x: 坐标x, y: 坐标y}, 
+	  		size:{x: width, y: height}
+	  	}
+	  *@param rect {array} 数组，由check返回的值
+	  */
+	  atomCheck: function atomCheck(a, b, rect) {
+	    // 离屏 canvas
+	    var canvas = document.createElement('canvas'),
+	        _ctx = canvas.getContext('2d');
+
+	    _ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
+	    // 相对位置
+	    var data1 = _ctx.getImageData(rect[0] - a.pos.x, rect[1] - a.pos.y, rect[2] - rect[0], rect[3] - rect[1]).data;
+
+	    _ctx.clearRect(0, 0, b.size.x, b.size.y);
+	    _ctx.drawImage(b.img, 0, 0, b.size.x, b.size.y);
+
+	    var data2 = _ctx.getImageData(rect[0] - b.pos.x, rect[1] - b.pos.y, rect[2] - rect[0], rect[3] - rect[1]).data;
+
+	    canvas = null;
+
+	    for (var i = 3; i < data1.length; i += 4) {
+	      if (data1[i] > 0 && data2[i] > 0) return true; // 碰撞
+	    }
+	    return false;
+	  },
+
+	  /**
+	  *像素级检测方法2
+	  *@thoery 先画一张图，然后将混合模式改为source-in，这时再画图， 
+	  	新图片会仅仅出现与原有内容重叠的地方 ，其他地方透明度变为 0，
+	  	这时就可以通过判断是否所有像素都透明来判断碰撞了。
+	  *@param a {object} 
+	  	被检测的对象 :
+	  	{
+	  		img: img dom元素<即两个碰撞物其中一个>, 
+	  		pos: {x: 坐标x, y: 坐标y}, 
+	  		size:{x: width, y: height}
+	  	}
+	  *@param b{object}	
+	  	被检测的对象 :
+	  	{
+	  		img: img dom元素<即两个碰撞物其中一个>, 
+	  		pos: {x: 坐标x, y: 坐标y}, 
+	  		size:{x: width, y: height}
+	  	}
+	  *@param rect {array} 数组，由check返回的值
+	  */
+	  atomCheck_2: function atomCheck_2(a, b, rect) {
+	    // 离屏 canvas
+	    var canvas = document.createElement('canvas'),
+	        _ctx = canvas.getContext('2d');
+
+	    // 将 (0, 0) 作为基准点，将 a 放入 (0, 0) 位置
+	    _ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
+	    _ctx.globalCompositeOperation = 'source-in';
+	    _ctx.drawImage(b.img, b.pos.x - a.pos.x, b.pos.y - a.pos.y, b.size.x, b.size.y);
+
+	    var data = _ctx.getImageData(rect[0] - a.pos.x, rect[1] - a.pos.y, rect[2] - rect[0], rect[3] - rect[1]).data;
+
+	    canvas = null;
+
+	    _ctx.globalCompositeOperation = 'source-over';
+
+	    for (var i = 3; i < data.length; i += 4) {
+	      if (data[i]) return true; // 碰撞
+	    }
+
+	    return false;
+	  }
+	};
+
+	exports.collision = collision;
+
+/***/ },
+/* 87 */
 /***/ function(module, exports) {
 
 	"use strict";
