@@ -16,15 +16,30 @@
     <style>
     .drawing{
       border: solid 1px red;
+      width: 100%;
+    }
+    .handler{
+      text-align: center;
+    }
+    .handler .btn{
+      display: inline-block;
+      padding: 0 10px;
+      border: solid 1px #ccc;
+      background-color: #eee;
+      border-radius: 3px;
+      color: #000;
     }
     </style>
 </head>
 <body>
    <div id='js-container'>
        <canvas class='drawing' id='js-canvas'>当前浏览器不支持canvas标签...</canvas>
-       <div>
-           <input type="button" value='CLICK ME!!!' id='js-switch'/>
+       <div class='handler'>
+           <span class="btn js-start">
+             开始
+           </span>
        </div>
+
    </div>
    <script src='public/dist/index.js'></script>
 </body>

@@ -29,6 +29,9 @@ let util = {
     },
     Random(){
       return Math.round(Math.random() * 10);
+    },
+    getStyle(dom, property){
+      return window.getComputedStyle(dom)[property];
     }
            
 }

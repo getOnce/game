@@ -4,12 +4,13 @@ import {Line} from './Line';
 import {Tween} from './Tween';
 import {collision} from './collision';
 import {util} from './util';
-const $ = util.$;
+const $ = util.$,
+	  getStyle = util.getStyle;
 
 
 
 let main_settings = {
-	mapWidth: 360,
+	mapWidth: 1000,
 	mapHeight: 170,
 
 	crf:null,	//动画requestAnimationFrame
@@ -42,18 +43,9 @@ let main_settings = {
 	barrierHeight: 46,
 	barrierX: 380,
 	barrierY: 92,
-	barrierSpeed: 6,
+	barrierSpeed: 4,
 },
-colors = [//路线颜色
-	'red',
-	'black',
-	'blue',
-	'black',
-	'yellow',
-	'purple',
-	'black'
-];
-
+colors = [];
 const colors_source = [//路线颜色可选值
 	'red',
 	'blue',
@@ -62,6 +54,17 @@ const colors_source = [//路线颜色可选值
 	'purple',
 	'black'
 ]
+/* 根据canvas宽度设置颜色 */
+function setColors(){
+	let $canvas = $('#js-canvas'), 
+		width = parseInt(getStyle($canvas, 'width'), 10),
+		length = Math.round(width/main_settings.movingLineItem) - 0 + 1;
+	while(length--){
+		colors.push(colors_source[util.Random()%colors_source.length]);
+	}
+}
+setColors();
+
 
 /* 地图 */
 let map = new Map({
@@ -240,16 +243,29 @@ const main = {
 		return this;
 	},
 	bindEvent(){
+		var me = this;
 		util
-			.$('#js-switch')
+			.$('.js-start')
 			.addEventListener('click', function(){
-				role.jump = 'up';
+				me
+					.renderAll()
+					.on = true;
+
+			});
+		util
+			.$('body')	
+			.addEventListener('keydown', function(e){
+				if(me.on && e.keyCode == 32){
+					role.jump = 'up';
+				}
 			});
 		return this;	
 	},
+	reset: function(){
+		this.on = false;
+	},
 	init(){
 		this
-			.renderAll()
 			.bindEvent();
 	}
 }
