@@ -19,7 +19,7 @@ let util = {
               || function(callback) {
                 return window.clearTimeout(callback);
               };
-        return cf.apply(this, arguments);      
+        return cf(...Array.from(arguments));      
     },
     $(selector){
     	return document.querySelector(selector);

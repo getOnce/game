@@ -7,8 +7,6 @@ import {util} from './util';
 const $ = util.$,
 	  getStyle = util.getStyle;
 
-
-
 let main_settings = {
 	mapWidth: 1000,
 	mapHeight: 170,
@@ -44,6 +42,7 @@ let main_settings = {
 	barrierX: 380,
 	barrierY: 92,
 	barrierSpeed: 4,
+	barrierHideWidth: 0
 },
 colors = [];
 const colors_source = [//路线颜色可选值
@@ -53,17 +52,13 @@ const colors_source = [//路线颜色可选值
 	'yellow',
 	'purple',
 	'black'
-]
-/* 根据canvas宽度设置颜色 */
-function setColors(){
-	let $canvas = $('#js-canvas'), 
-		width = parseInt(getStyle($canvas, 'width'), 10),
-		length = Math.round(width/main_settings.movingLineItem) - 0 + 1;
-	while(length--){
-		colors.push(colors_source[util.Random()%colors_source.length]);
-	}
-}
-setColors();
+],
+STATE = [
+	'wait',		//待开始
+	'playing',	//游戏进行中
+	'pause',	//游戏暂停中
+	'fail'		//游戏失败
+];
 
 
 /* 地图 */
@@ -134,14 +129,32 @@ let barrier = new Player({
 		width: main_settings.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
 		height: main_settings.barrierHeight//可选。要使用的图像的高度。（伸展或缩小图像）
 	});
-barrier.after('getimg', function(){
-	role.render();
-});
+// barrier.after('getimg', function(){
+// 	role.render();
+// });
 
 
 
 /* render all */
 const main = {
+	status: STATE[0], //当前状态 [wait, playing, pause, fail, ] = ['待开始', '游戏进行中', '游戏暂停中', '失败']
+	barrierFactory(){
+		return new Player({
+			$el: $('#js-canvas'),
+			url: main_settings.barrierUrl,
+			sx: main_settings.barrierSx,//	可选。开始剪切的 x 坐标位置。
+			sy: main_settings.barrierSy,//	可选。开始剪切的 y 坐标位置。
+			swidth: main_settings.barrierSwidth,//	可选。被剪切图像的宽度。
+			sheight: main_settings.barrierSheight,//	可选。被剪切图像的高度。
+			x: main_settings.barrierX,	//在画布上放置图像的 x 坐标位置。
+			y: main_settings.barrierY,	//在画布上放置图像的 y 坐标位置。
+			width: main_settings.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
+			height: main_settings.barrierHeight//可选。要使用的图像的高度。（伸展或缩小图像）
+		});
+	},
+	createBarrier(){
+		barrier = this.barrierFactory();
+	},
 	renderAll(){
 		const me = this;
 		//清空画布
@@ -172,23 +185,13 @@ const main = {
 				.push(colors_source[util.Random()%colors_source.length]);
 			movingLineBeen = 0;	
 		}
+
 		//障碍物
 		if(barrier.ready && barrier.x > -20){
 			barrier.render();
 			barrier.x -= main_settings.barrierSpeed;
 		}else{
-			barrier = new Player({
-				$el: $('#js-canvas'),
-				url: main_settings.barrierUrl,
-				sx: main_settings.barrierSx,//	可选。开始剪切的 x 坐标位置。
-				sy: main_settings.barrierSy,//	可选。开始剪切的 y 坐标位置。
-				swidth: main_settings.barrierSwidth,//	可选。被剪切图像的宽度。
-				sheight: main_settings.barrierSheight,//	可选。被剪切图像的高度。
-				x: main_settings.barrierX,	//在画布上放置图像的 x 坐标位置。
-				y: main_settings.barrierY,	//在画布上放置图像的 y 坐标位置。
-				width: main_settings.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-				height: main_settings.barrierHeight//可选。要使用的图像的高度。（伸展或缩小图像）
-			});
+			this.createBarrier();
 		}
 
 		//碰撞检测
@@ -229,12 +232,12 @@ const main = {
 								status);
 
 				if(result){
+					me.setStatus(STATE[3]);
 					return false;
 				}							
 			}
 			
 		}
-		
 
 		//帧动画
 		main_settings.crf = util.raf(function(){
@@ -242,31 +245,90 @@ const main = {
 		});
 		return this;
 	},
+	$start: $('.js-start'),
+	$reset: $('.js-reset'),
+	$canvas: $('#js-canvas'),
 	bindEvent(){
 		var me = this;
-		util
-			.$('.js-start')
-			.addEventListener('click', function(){
-				me
+		me.$start
+			.addEventListener('click', function(e){
+				if(me.status == STATE[1]){
+					e.currentTarget.innerText = '开始';
+					me
+						.clearTimeout()
+						.setStatus(STATE[2]);
+				}else if(me.status == STATE[2] || me.status == STATE[0]){
+					e.currentTarget.innerText = '停止';
+					me
 					.renderAll()
-					.on = true;
+					.setStatus(STATE[1]);
+				}
 
 			});
-		util
-			.$('body')	
+		me.$reset	
+			.addEventListener('click', function(){
+				me.reset();
+			})
+		$('body')	
 			.addEventListener('keydown', function(e){
-				if(me.on && e.keyCode == 32){
+				if(me.status && e.keyCode == 32){
 					role.jump = 'up';
 				}
 			});
 		return this;	
 	},
-	reset: function(){
-		this.on = false;
+	clearTimeout(){
+		if(main_settings.crf){
+			util.cRaf(main_settings.crf)
+		}
+		return this;
+	},
+	reset(){
+		this
+			.clearTimeout()
+			.setStatus()
+			.setColors()
+			.$start
+			.innerText = '开始';
+		//清空画布	
+		map.clear();
+		if(role.ready){
+			role
+				.reset()
+				.render();
+		}
+		if(barrier.ready){
+			this.createBarrier();
+		}
+		return this;
+	},
+	setStatus(value){
+		this.status = value || STATE[0];
+		return this;
+	},
+	setColors(){	//根据canvas宽度设置颜色
+		colors = [];
+		let $canvas = this.$canvas, 
+			width = parseInt(getStyle($canvas, 'width'), 10),
+			length = Math.round(width/main_settings.movingLineItem) - 0 + 1;
+		while(length--){
+			colors.push(colors_source[util.Random()%colors_source.length]);
+		}
+		return this;
+	},
+	setBarrierX(){
+		let $canvas = this.$canvas,
+			width = parseInt(getStyle($canvas, 'width'), 10);
+		barrier.x = width + main_settings.barrierHideWidth;
+		main_settings.barrierX = width + main_settings.barrierHideWidth;
+		return this;
 	},
 	init(){
 		this
+			.setColors()
+			.setBarrierX()
 			.bindEvent();
+
 	}
 }
 

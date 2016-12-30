@@ -115,8 +115,6 @@ let collision = {
 		  // 将 (0, 0) 作为基准点，将 a 放入 (0, 0) 位置
 		_ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
 		_ctx.globalCompositeOperation = 'source-in';
-    console.log('a.size.x:' + a.size.x);
-    console.log('a.size.y:' + a.size.y);
 		_ctx.drawImage(b.img, b.pos.x - a.pos.x, 
 			b.pos.y - a.pos.y, 
 			b.size.x, b.size.y);
