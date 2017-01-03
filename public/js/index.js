@@ -7,7 +7,7 @@ import {util} from './util';
 import {AOP} from './AOP';
 const $ = util.$,
 	  getStyle = util.getStyle;
-import {main_settings, colors_source, STATE} from './config';
+import {main_settings as MS, colors_source, STATE} from './config';
 let colors = [],
 	map = null,
 	role = null,
@@ -19,8 +19,8 @@ let colors = [],
 {
 	map = new Map({
 		$el: $('#js-canvas'),
-		width: main_settings.mapWidth,
-		height: main_settings.mapHeight
+		width: MS.mapWidth,
+		height: MS.mapHeight
 	});
 	map.init();
 }
@@ -29,20 +29,20 @@ let colors = [],
 {
 	role = new Player({
 		$el: $('#js-canvas'),
-		url: main_settings.roleUrl,
-		sx: main_settings.roleSx, //可选。开始剪切的 x 坐标位置。
-		sy: main_settings.roleSy, //可选。开始剪切的 y 坐标位置。
-		swidth: main_settings.roleSwidth, //可选。被剪切图像的宽度。
-		sheight: main_settings.roleSheight, //可选。被剪切图像的高度。
-		x: main_settings.roleX,	//在画布上放置图像的 x 坐标位置。
-		y: main_settings.roleY,	//在画布上放置图像的 y 坐标位置。
-		width: main_settings.roleWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-		height: main_settings.roleHeight //可选。要使用的图像的高度。（伸展或缩小图像）
+		url: MS.roleUrl,
+		sx: MS.roleSx, //可选。开始剪切的 x 坐标位置。
+		sy: MS.roleSy, //可选。开始剪切的 y 坐标位置。
+		swidth: MS.roleSwidth, //可选。被剪切图像的宽度。
+		sheight: MS.roleSheight, //可选。被剪切图像的高度。
+		x: MS.roleX,	//在画布上放置图像的 x 坐标位置。
+		y: MS.roleY,	//在画布上放置图像的 y 坐标位置。
+		width: MS.roleWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
+		height: MS.roleHeight //可选。要使用的图像的高度。（伸展或缩小图像）
 		
 	});
 	role.after('getimg', function(){
 		role.render();
-		role.rolePerform = main_settings.rolePerform;
+		role.rolePerform = MS.rolePerform;
 	});
 	role.changePerform = function(){
 		role.rolePerform = role.rolePerform >= 3? 0: ++role.rolePerform;
@@ -71,15 +71,15 @@ let colors = [],
 {
 	barrier = new Player({
 		$el: $('#js-canvas'),
-		url: main_settings.barrierUrl,
-		sx: main_settings.barrierSx, //可选。开始剪切的 x 坐标位置。
-		sy: main_settings.barrierSy, //可选。开始剪切的 y 坐标位置。
-		swidth: main_settings.barrierSwidth,//	可选。被剪切图像的宽度。
-		sheight: main_settings.barrierSheight,//	可选。被剪切图像的高度。
-		x: main_settings.barrierX,	//在画布上放置图像的 x 坐标位置。
-		y: main_settings.barrierY,	//在画布上放置图像的 y 坐标位置。
-		width: main_settings.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-		height: main_settings.barrierHeight //可选。要使用的图像的高度。（伸展或缩小图像）
+		url: MS.barrierUrl,
+		sx: MS.barrierSx, //可选。开始剪切的 x 坐标位置。
+		sy: MS.barrierSy, //可选。开始剪切的 y 坐标位置。
+		swidth: MS.barrierSwidth,//	可选。被剪切图像的宽度。
+		sheight: MS.barrierSheight,//	可选。被剪切图像的高度。
+		x: MS.barrierX,	//在画布上放置图像的 x 坐标位置。
+		y: MS.barrierY,	//在画布上放置图像的 y 坐标位置。
+		width: MS.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
+		height: MS.barrierHeight //可选。要使用的图像的高度。（伸展或缩小图像）
 	});
 }
 /* render all */
@@ -160,15 +160,15 @@ const main = {
 	barrierFactory(){ //创建障碍物方法
 		return new Player({
 			$el: $('#js-canvas'),
-			url: main_settings.barrierUrl,
-			sx: main_settings.barrierSx,
-			sy: main_settings.barrierSy,
-			swidth: main_settings.barrierSwidth,
-			sheight: main_settings.barrierSheight,
-			x: main_settings.barrierX,	
-			y: main_settings.barrierY,	
-			width: main_settings.barrierWidth,
-			height: main_settings.barrierHeight
+			url: MS.barrierUrl,
+			sx: MS.barrierSx,
+			sy: MS.barrierSy,
+			swidth: MS.barrierSwidth,
+			sheight: MS.barrierSheight,
+			x: MS.barrierX,	
+			y: MS.barrierY,	
+			width: MS.barrierWidth,
+			height: MS.barrierHeight
 		});
 	},
 	createBarrier(){ //调用创建障碍物方法
@@ -177,8 +177,8 @@ const main = {
 	setBarrierX(){ //设置障碍物横坐标
 		let $canvas = this.$canvas,
 			width = parseInt(getStyle($canvas, 'width'), 10);
-		barrier.x = width + main_settings.barrierHideWidth;
-		main_settings.barrierX = width + main_settings.barrierHideWidth;
+		barrier.x = width + MS.barrierHideWidth;
+		MS.barrierX = width + MS.barrierHideWidth;
 		return this;
 	},
 	renderLine(){ //加载线路
@@ -186,10 +186,10 @@ const main = {
 			.forEach(function(item, index, array){
 				
 				let pos = {
-					ox: main_settings.movingLineItem * index - movingLineBeen,
-					oy: main_settings.movingLineOY,
-					x: main_settings.movingLineItem * (index + 1) - movingLineBeen,
-					y: main_settings.movingLineY
+					ox: MS.movingLineItem * index - movingLineBeen,
+					oy: MS.movingLineOY,
+					x: MS.movingLineItem * (index + 1) - movingLineBeen,
+					y: MS.movingLineY
 				};
 				if(index == 0){
 					pos.ox = 0;
@@ -207,7 +207,7 @@ const main = {
 		const me = this;
 		let result = false,
 			result2 = false;
-			
+
 		//碰撞检测
 		if(barrier.ready && role.ready){
 			let status = me.simpleCheck(role, barrier);
@@ -222,17 +222,17 @@ const main = {
 		
 		//玩家跳跃动画
 		if(role.ready){
-			role.sx = (main_settings.roleSwidth + 2) * role.rolePerform;
+			role.sx = (MS.roleSwidth + 2) * role.rolePerform;
 			role.render();
 			if(role.jump == 'up'){
-				role.y -= main_settings.roleSpeedUp;
-				if(role.y <= main_settings.roleMaxY){
+				role.y -= MS.roleSpeedUp;
+				if(role.y <= MS.roleMaxY){
 					role.jump = 'down';
 				}
 			}else if(role.jump == 'down'){
-				role.y += main_settings.roleSpeedDown;
-				if(role.y >= main_settings.roleY){
-					role.y = main_settings.roleY;
+				role.y += MS.roleSpeedDown;
+				if(role.y >= MS.roleY){
+					role.y = MS.roleY;
 					role.jump = false;
 				}
 			}
@@ -240,8 +240,8 @@ const main = {
 		
 		//路线移动
 		me.renderLine();
-		movingLineBeen += main_settings.movingLineSpeed;
-		if(movingLineBeen >= main_settings.movingLineItem){
+		movingLineBeen += MS.movingLineSpeed;
+		if(movingLineBeen >= MS.movingLineItem){
 			colors
 				.shift()
 			colors	
@@ -252,7 +252,7 @@ const main = {
 		//障碍物
 		if(barrier.ready && barrier.x > -20){
 			barrier.render();
-			barrier.x -= main_settings.barrierSpeed;
+			barrier.x -= MS.barrierSpeed;
 		}else{
 			this.createBarrier();
 		}
@@ -277,7 +277,7 @@ const main = {
 		}
 
 		//帧动画
-		main_settings.crf = util.raf(function(){
+		MS.crf = util.raf(function(){
 			me.renderAll();
 		});
 		return this;
@@ -317,8 +317,8 @@ const main = {
 		return this;	
 	},
 	clearTimeout(){
-		if(main_settings.crf){
-			util.cRaf(main_settings.crf)
+		if(MS.crf){
+			util.cRaf(MS.crf)
 		}
 		return this;
 	},
@@ -349,7 +349,7 @@ const main = {
 		colors = [];
 		let $canvas = this.$canvas, 
 			width = parseInt(getStyle($canvas, 'width'), 10),
-			length = Math.round(width / main_settings.movingLineItem) - 0 + 1;
+			length = Math.round(width / MS.movingLineItem) - 0 + 1;
 		while(length--){
 			colors.push(colors_source[util.Random() % colors_source.length]);
 		}
