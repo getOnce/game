@@ -8,7 +8,7 @@ const $ = util.$,
 	  getStyle = util.getStyle;
 
 let main_settings = {
-	mapWidth: 1000,
+	mapWidth: 300,
 	mapHeight: 170,
 
 	crf:null,	//动画requestAnimationFrame
