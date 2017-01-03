@@ -5,9 +5,10 @@ import {Tween} from './Tween';
 import {collision} from './collision';
 import {util} from './util';
 import {AOP} from './AOP';
+import {main_settings as MS, colors_source, STATE} from './config';
 const $ = util.$,
 	  getStyle = util.getStyle;
-import {main_settings as MS, colors_source, STATE} from './config';
+
 let colors = [],
 	map = null,
 	role = null,
@@ -72,14 +73,14 @@ let colors = [],
 	barrier = new Player({
 		$el: $('#js-canvas'),
 		url: MS.barrierUrl,
-		sx: MS.barrierSx, //可选。开始剪切的 x 坐标位置。
-		sy: MS.barrierSy, //可选。开始剪切的 y 坐标位置。
-		swidth: MS.barrierSwidth,//	可选。被剪切图像的宽度。
-		sheight: MS.barrierSheight,//	可选。被剪切图像的高度。
-		x: MS.barrierX,	//在画布上放置图像的 x 坐标位置。
-		y: MS.barrierY,	//在画布上放置图像的 y 坐标位置。
-		width: MS.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-		height: MS.barrierHeight //可选。要使用的图像的高度。（伸展或缩小图像）
+		sx: MS.barrierSx, 
+		sy: MS.barrierSy, 
+		swidth: MS.barrierSwidth,
+		sheight: MS.barrierSheight,
+		x: MS.barrierX,	
+		y: MS.barrierY,	
+		width: MS.barrierWidth,	
+		height: MS.barrierHeight 
 	});
 }
 /* render all */
