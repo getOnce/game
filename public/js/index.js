@@ -4,11 +4,11 @@ import {Line} from './Line';
 import {Tween} from './Tween';
 import {collision} from './collision';
 import {util} from './util';
+import {AOP} from './AOP';
 const $ = util.$,
 	  getStyle = util.getStyle;
-
 let main_settings = {
-	mapWidth: 300,
+	mapWidth: 1300,
 	mapHeight: 170,
 
 	crf:null,	//动画requestAnimationFrame
@@ -20,11 +20,12 @@ let main_settings = {
 	roleUrl: 'public/images/player.png',
 	roleSx: 0,	//可选。开始剪切的 x 坐标位置。
 	roleSy: 0,	//可选。开始剪切的 y 坐标位置。
-	roleSwidth: 89,	//	可选。被剪切图像的宽度。
-	roleSheight: 89,	//	可选。被剪切图像的高度。
-	roleWidth: 45,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-	roleHeight: 45,	//可选。要使用的图像的高度。（伸展或缩小图像）
+	roleSwidth: 80,	//	可选。被剪切图像的宽度。
+	roleSheight: 86,	//	可选。被剪切图像的高度。
+	roleWidth: 80,	//可选。要使用的图像的宽度。（伸展或缩小图像）
+	roleHeight: 86,	//可选。要使用的图像的高度。（伸展或缩小图像）
 	roleMaxY: 0,	//跳到最高点
+	rolePerform: 0,	//当前样子[0, 1, 2, 3][初始状态、 左脚抬起、 初始状态、 右脚抬起]
 
 	movingLineBeen: 0,	//路线向前行经过的路程
 	movingLineItem: 60,	//路线分段的长度
@@ -37,8 +38,8 @@ let main_settings = {
 	barrierSy: 0,
 	barrierSwidth: 46,
 	barrierSheight: 92,
-	barrierWidth: 23,
-	barrierHeight: 46,
+	barrierWidth: 46,
+	barrierHeight: 92,
 	barrierX: 380,
 	barrierY: 92,
 	barrierSpeed: 4,
@@ -73,19 +74,34 @@ map.init();
 let role = new Player({
 		$el: $('#js-canvas'),
 		url: main_settings.roleUrl,
-		sx: main_settings.roleSx,//	可选。开始剪切的 x 坐标位置。
-		sy: main_settings.roleSy,//	可选。开始剪切的 y 坐标位置。
-		swidth: main_settings.roleSwidth,//	可选。被剪切图像的宽度。
-		sheight: main_settings.roleSheight,//	可选。被剪切图像的高度。
+		sx: main_settings.roleSx, //可选。开始剪切的 x 坐标位置。
+		sy: main_settings.roleSy, //可选。开始剪切的 y 坐标位置。
+		swidth: main_settings.roleSwidth, //可选。被剪切图像的宽度。
+		sheight: main_settings.roleSheight, //可选。被剪切图像的高度。
 		x: main_settings.roleX,	//在画布上放置图像的 x 坐标位置。
 		y: main_settings.roleY,	//在画布上放置图像的 y 坐标位置。
 		width: main_settings.roleWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-		height: main_settings.roleHeight//可选。要使用的图像的高度。（伸展或缩小图像）
+		height: main_settings.roleHeight //可选。要使用的图像的高度。（伸展或缩小图像）
+		
 	});
 role.after('getimg', function(){
 	role.render();
+	role.rolePerform = main_settings.rolePerform;
 });
-
+role.changePerform = function(){
+	role.rolePerform = role.rolePerform >= 3? 0: ++role.rolePerform;
+	role.autoChangePerform();
+}
+role.changePerformTimer = null;
+role.autoChangePerform = function(){
+	role.changePerformTimer = setTimeout(role.changePerform, 200);
+}
+role.stopChangePerform = function(){
+	if(role.changePerformTimer){
+		clearTimeout(role.changePerformTimer);
+		role.changePerformTimer = null;
+	}
+}
 /* 路线 */
 let movingLine = new Line({
 		$el: $('#js-canvas')
@@ -157,8 +173,56 @@ const main = {
 	},
 	renderAll(){
 		const me = this;
+		let result = false;
+		//碰撞检测
+		if(barrier.ready && role.ready){
+			let status = collision.check(role.x,
+						 role.y, 
+						 role.width, 
+						 role.height,
+						 barrier.x,
+						 barrier.y,
+						 barrier.width,
+						 barrier.height);
+			if(status.join('') != '0000' ){
+				result = collision.atomCheck(
+								{
+									img: role.img,
+									x: role.x,
+									y: role.y,
+									sx: role.sx, //可选。开始剪切的 x 坐标位置。
+									sy: role.sy, //可选。开始剪切的 y 坐标位置。
+									swidth: role.swidth, //可选。被剪切图像的宽度。
+									sheight: role.sheight, //可选。被剪切图像的高度。
+									width: role.width,	//可选。要使用的图像的宽度。（伸展或缩小图像）
+									height: role.height//可选。要使用的图像的高度。（伸展或缩小图像）
+								}, 
+								{
+									img: barrier.img,
+									x: barrier.x,
+									y: barrier.y,
+									sx: barrier.sx, //可选。开始剪切的 x 坐标位置。
+									sy: barrier.sy, //可选。开始剪切的 y 坐标位置。
+									swidth: barrier.swidth, //可选。被剪切图像的宽度。
+									sheight: barrier.sheight, //可选。被剪切图像的高度。
+									width: barrier.width,	//可选。要使用的图像的宽度。（伸展或缩小图像）
+									height: barrier.height//可选。要使用的图像的高度。（伸展或缩小图像）
+								},
+								status);
+
+				if(result){
+					me.setStatus(STATE[3]);
+					return false;
+				}							
+			}
+		}
+		
+		
+		role.sx = (main_settings.roleSwidth + 2) * role.rolePerform;
+		
 		//清空画布
 		map.clear();
+		
 		//玩家跳跃动画
 		if(role.ready){
 			role.render();
@@ -175,6 +239,7 @@ const main = {
 				}
 			}
 		}
+		
 		//路线移动
 		renderLine();
 		movingLineBeen += main_settings.movingLineSpeed;
@@ -192,51 +257,6 @@ const main = {
 			barrier.x -= main_settings.barrierSpeed;
 		}else{
 			this.createBarrier();
-		}
-
-		//碰撞检测
-		if(barrier.ready && role.ready){
-			let status = collision.check(role.x,
-						 role.y, 
-						 role.width, 
-						 role.height,
-						 barrier.x,
-						 barrier.y,
-						 barrier.width,
-						 barrier.height);
-			if(status.join('') != '0000' ){
-
-				let result = collision.atomCheck_2(
-								{
-									img: role.img,
-									pos: {
-										x: role.x,
-										y: role.y
-									},
-									size: {
-										x: role.width,
-										y: role.height,
-									}
-								}, 
-								{
-									img: barrier.img,
-									pos: {
-										x: barrier.x,
-										y: barrier.y
-									},
-									size: {
-										x: barrier.width,
-										y: barrier.height,
-									}
-								},
-								status);
-
-				if(result){
-					me.setStatus(STATE[3]);
-					return false;
-				}							
-			}
-			
 		}
 
 		//帧动画
@@ -257,11 +277,16 @@ const main = {
 					me
 						.clearTimeout()
 						.setStatus(STATE[2]);
+					
+						
 				}else if(me.status == STATE[2] || me.status == STATE[0]){
 					e.currentTarget.innerText = '停止';
 					me
 					.renderAll()
 					.setStatus(STATE[1]);
+					if(!role.changePerformTimer){
+						role.autoChangePerform();
+					}
 				}
 
 			});
@@ -310,9 +335,9 @@ const main = {
 		colors = [];
 		let $canvas = this.$canvas, 
 			width = parseInt(getStyle($canvas, 'width'), 10),
-			length = Math.round(width/main_settings.movingLineItem) - 0 + 1;
+			length = Math.round(width / main_settings.movingLineItem) - 0 + 1;
 		while(length--){
-			colors.push(colors_source[util.Random()%colors_source.length]);
+			colors.push(colors_source[util.Random() % colors_source.length]);
 		}
 		return this;
 	},
@@ -331,7 +356,13 @@ const main = {
 
 	}
 }
-
+AOP.after('setStatus', 
+	function(){
+		if(main.status != STATE[1]){
+			role.stopChangePerform();	
+		}
+	},
+	main);
 main.init();
 
 

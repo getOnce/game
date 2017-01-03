@@ -63,18 +63,18 @@ let collision = {
   		let canvas = document.createElement('canvas'),
   			_ctx = canvas.getContext('2d');
 
-  		_ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
+  		_ctx.drawImage(a.img, a.sx, a.sy, a.swidth, a.sheight, 0, 0, a.width, a.height);
   		// 相对位置
-  		let data1 = _ctx.getImageData(rect[0] - a.pos.x, 
-  			rect[1] - a.pos.y, 
+  		let data1 = _ctx.getImageData(rect[0] - a.x, 
+  			rect[1] - a.y, 
   			rect[2] - rect[0], 
   			rect[3] - rect[1]).data;
 
-  		_ctx.clearRect(0, 0, b.size.x, b.size.y);
-  		_ctx.drawImage(b.img, 0, 0, b.size.x, b.size.y);
-
-  		let data2 = _ctx.getImageData(rect[0] - b.pos.x, 
-  			rect[1] - b.pos.y, 
+  		_ctx.clearRect(0, 0, b.x, b.y);
+  		//_ctx.drawImage(b.img, 0, 0, b.size.x, b.size.y);
+      _ctx.drawImage(b.img, b.sx, b.sy, b.swidth, b.sheight, 0, 0, b.width, b.height);
+  		let data2 = _ctx.getImageData(rect[0] - b.x, 
+  			rect[1] - b.y, 
   			rect[2] - rect[0], 
   			rect[3] - rect[1]).data;
 
