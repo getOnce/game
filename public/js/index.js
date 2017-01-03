@@ -7,71 +7,27 @@ import {util} from './util';
 import {AOP} from './AOP';
 const $ = util.$,
 	  getStyle = util.getStyle;
-let main_settings = {
-	mapWidth: 1300,
-	mapHeight: 170,
-
-	crf:null,	//动画requestAnimationFrame
-
-	roleSpeedUp: 5,
-	roleSpeedDown: 3,
-	roleX: 10,	//在画布上放置图像的 x 坐标位置。
-	roleY: 90,	//在画布上放置图像的 y 坐标位置。
-	roleUrl: 'public/images/player.png',
-	roleSx: 0,	//可选。开始剪切的 x 坐标位置。
-	roleSy: 0,	//可选。开始剪切的 y 坐标位置。
-	roleSwidth: 80,	//	可选。被剪切图像的宽度。
-	roleSheight: 86,	//	可选。被剪切图像的高度。
-	roleWidth: 80,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-	roleHeight: 86,	//可选。要使用的图像的高度。（伸展或缩小图像）
-	roleMaxY: 0,	//跳到最高点
-	rolePerform: 0,	//当前样子[0, 1, 2, 3][初始状态、 左脚抬起、 初始状态、 右脚抬起]
-
-	movingLineBeen: 0,	//路线向前行经过的路程
-	movingLineItem: 60,	//路线分段的长度
-	movingLineOY: 140,	//路线结束点横坐标
-	movingLineY: 140,	//路线结束点纵坐标
-	movingLineSpeed: 5,	//路线移动速度
-
-	barrierUrl: 'public/images/cacti.png',
-	barrierSx: 0,
-	barrierSy: 0,
-	barrierSwidth: 46,
-	barrierSheight: 92,
-	barrierWidth: 46,
-	barrierHeight: 92,
-	barrierX: 380,
-	barrierY: 92,
-	barrierSpeed: 4,
-	barrierHideWidth: 0
-},
-colors = [];
-const colors_source = [//路线颜色可选值
-	'red',
-	'blue',
-	'orange',
-	'yellow',
-	'purple',
-	'black'
-],
-STATE = [
-	'wait',		//待开始
-	'playing',	//游戏进行中
-	'pause',	//游戏暂停中
-	'fail'		//游戏失败
-];
-
+import {main_settings, colors_source, STATE} from './config';
+let colors = [],
+	map = null,
+	role = null,
+	movingLine = null,
+	barrier = null,
+	movingLineBeen = 0;
 
 /* 地图 */
-let map = new Map({
-	$el: $('#js-canvas'),
-	width: main_settings.mapWidth,
-	height: main_settings.mapHeight
-});
-map.init();
+{
+	map = new Map({
+		$el: $('#js-canvas'),
+		width: main_settings.mapWidth,
+		height: main_settings.mapHeight
+	});
+	map.init();
+}
 
 /* 角色 = 玩家 */
-let role = new Player({
+{
+	role = new Player({
 		$el: $('#js-canvas'),
 		url: main_settings.roleUrl,
 		sx: main_settings.roleSx, //可选。开始剪切的 x 坐标位置。
@@ -84,147 +40,189 @@ let role = new Player({
 		height: main_settings.roleHeight //可选。要使用的图像的高度。（伸展或缩小图像）
 		
 	});
-role.after('getimg', function(){
-	role.render();
-	role.rolePerform = main_settings.rolePerform;
-});
-role.changePerform = function(){
-	role.rolePerform = role.rolePerform >= 3? 0: ++role.rolePerform;
-	role.autoChangePerform();
-}
-role.changePerformTimer = null;
-role.autoChangePerform = function(){
-	role.changePerformTimer = setTimeout(role.changePerform, 200);
-}
-role.stopChangePerform = function(){
-	if(role.changePerformTimer){
-		clearTimeout(role.changePerformTimer);
-		role.changePerformTimer = null;
+	role.after('getimg', function(){
+		role.render();
+		role.rolePerform = main_settings.rolePerform;
+	});
+	role.changePerform = function(){
+		role.rolePerform = role.rolePerform >= 3? 0: ++role.rolePerform;
+		role.autoChangePerform();
+	}
+	role.changePerformTimer = null;
+	role.autoChangePerform = function(){
+		role.changePerformTimer = setTimeout(role.changePerform, 200);
+	}
+	role.stopChangePerform = function(){
+		if(role.changePerformTimer){
+			clearTimeout(role.changePerformTimer);
+			role.changePerformTimer = null;
+		}
 	}
 }
+
 /* 路线 */
-let movingLine = new Line({
+{
+	movingLine = new Line({
 		$el: $('#js-canvas')
-	}),
-	movingLineBeen = 0;
-const renderLine = function(){
-	colors
-		.forEach(function(item, index, array){
-			
-			let pos = {
-				ox: main_settings.movingLineItem * index - movingLineBeen,
-				oy: main_settings.movingLineOY,
-				x: main_settings.movingLineItem * (index + 1) - movingLineBeen,
-				y: main_settings.movingLineY
-			};
-			if(index == 0){
-				pos.ox = 0;
-			}
-			movingLine
-				.beginPath()
-				.moveTo(pos.ox, pos.oy)
-				.lineTo(pos.x, pos.y)
-				.strokeStyle(item || 'black')
-				.stroke()
-		});
-		
+	});
 }
 
-
 /* 障碍物 */
-
-let barrier = new Player({
+{
+	barrier = new Player({
 		$el: $('#js-canvas'),
 		url: main_settings.barrierUrl,
-		sx: main_settings.barrierSx,//	可选。开始剪切的 x 坐标位置。
-		sy: main_settings.barrierSy,//	可选。开始剪切的 y 坐标位置。
+		sx: main_settings.barrierSx, //可选。开始剪切的 x 坐标位置。
+		sy: main_settings.barrierSy, //可选。开始剪切的 y 坐标位置。
 		swidth: main_settings.barrierSwidth,//	可选。被剪切图像的宽度。
 		sheight: main_settings.barrierSheight,//	可选。被剪切图像的高度。
 		x: main_settings.barrierX,	//在画布上放置图像的 x 坐标位置。
 		y: main_settings.barrierY,	//在画布上放置图像的 y 坐标位置。
 		width: main_settings.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-		height: main_settings.barrierHeight//可选。要使用的图像的高度。（伸展或缩小图像）
+		height: main_settings.barrierHeight //可选。要使用的图像的高度。（伸展或缩小图像）
 	});
-// barrier.after('getimg', function(){
-// 	role.render();
-// });
-
-
-
+}
 /* render all */
 const main = {
 	status: STATE[0], //当前状态 [wait, playing, pause, fail, ] = ['待开始', '游戏进行中', '游戏暂停中', '失败']
-	barrierFactory(){
+	$start: $('.js-start'),
+	$reset: $('.js-reset'),
+	$canvas: $('#js-canvas'),
+	/**
+	*检测两个图象是否有交集
+	*@param role {object} 图像1
+	*	role.x 横坐标	
+	*	role.y 纵坐标
+	*	role.width 宽度
+	*	role.width 高度
+	*@param barrier {object} 图像2
+	*	barrier.x 横坐标	
+	*	barrier.y 纵坐标
+	*	barrier.width 宽度
+	*	barrier.width 高度
+	*@return {array} [x, y, x0, y0];
+	*/
+	simpleCheck(role, barrier){
+		return collision.check(
+					 role.x,
+					 role.y, 
+					 role.width, 
+					 role.height,
+					 barrier.x,
+					 barrier.y,
+					 barrier.width,
+					 barrier.height
+				);
+	},
+	/**
+	*检测两个图象是否有交集 - 深度检测是否有像素重叠
+	*@param role {object} 图像1
+	*	role.x 横坐标	
+	*	role.y 纵坐标
+	*	role.width 宽度
+	*	role.height 高度
+	*	role....
+	*@param barrier {object} 图像2
+	*	barrier.x 横坐标	
+	*	barrier.y 纵坐标
+	*	barrier.width 宽度
+	*	barrier.height 高度
+	*	barrier....
+	*@return {boolean};
+	*/
+	deepCheck(role, barrier, status){
+		return collision.atomCheck_2(
+				{
+					img: role.img,
+					x: role.x,
+					y: role.y,
+					sx: role.sx,
+					sy: role.sy,
+					swidth: role.swidth, 
+					sheight: role.sheight, 
+					width: role.width,	
+					height: role.height
+				}, 
+				{
+					img: barrier.img,
+					x: barrier.x,
+					y: barrier.y,
+					sx: barrier.sx, 
+					sy: barrier.sy, 
+					swidth: barrier.swidth, 
+					sheight: barrier.sheight, 
+					width: barrier.width,	
+					height: barrier.height
+				},
+				status
+			);
+	},
+	barrierFactory(){ //创建障碍物方法
 		return new Player({
 			$el: $('#js-canvas'),
 			url: main_settings.barrierUrl,
-			sx: main_settings.barrierSx,//	可选。开始剪切的 x 坐标位置。
-			sy: main_settings.barrierSy,//	可选。开始剪切的 y 坐标位置。
-			swidth: main_settings.barrierSwidth,//	可选。被剪切图像的宽度。
-			sheight: main_settings.barrierSheight,//	可选。被剪切图像的高度。
-			x: main_settings.barrierX,	//在画布上放置图像的 x 坐标位置。
-			y: main_settings.barrierY,	//在画布上放置图像的 y 坐标位置。
-			width: main_settings.barrierWidth,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-			height: main_settings.barrierHeight//可选。要使用的图像的高度。（伸展或缩小图像）
+			sx: main_settings.barrierSx,
+			sy: main_settings.barrierSy,
+			swidth: main_settings.barrierSwidth,
+			sheight: main_settings.barrierSheight,
+			x: main_settings.barrierX,	
+			y: main_settings.barrierY,	
+			width: main_settings.barrierWidth,
+			height: main_settings.barrierHeight
 		});
 	},
-	createBarrier(){
+	createBarrier(){ //调用创建障碍物方法
 		barrier = this.barrierFactory();
+	},
+	setBarrierX(){ //设置障碍物横坐标
+		let $canvas = this.$canvas,
+			width = parseInt(getStyle($canvas, 'width'), 10);
+		barrier.x = width + main_settings.barrierHideWidth;
+		main_settings.barrierX = width + main_settings.barrierHideWidth;
+		return this;
+	},
+	renderLine(){ //加载线路
+		colors
+			.forEach(function(item, index, array){
+				
+				let pos = {
+					ox: main_settings.movingLineItem * index - movingLineBeen,
+					oy: main_settings.movingLineOY,
+					x: main_settings.movingLineItem * (index + 1) - movingLineBeen,
+					y: main_settings.movingLineY
+				};
+				if(index == 0){
+					pos.ox = 0;
+				}
+				movingLine
+					.beginPath()
+					.moveTo(pos.ox, pos.oy)
+					.lineTo(pos.x, pos.y)
+					.strokeStyle(item || 'black')
+					.stroke()
+			});
+			
 	},
 	renderAll(){
 		const me = this;
-		let result = false;
+		let result = false,
+			result2 = false;
+			
 		//碰撞检测
 		if(barrier.ready && role.ready){
-			let status = collision.check(role.x,
-						 role.y, 
-						 role.width, 
-						 role.height,
-						 barrier.x,
-						 barrier.y,
-						 barrier.width,
-						 barrier.height);
-			if(status.join('') != '0000' ){
-				result = collision.atomCheck(
-								{
-									img: role.img,
-									x: role.x,
-									y: role.y,
-									sx: role.sx, //可选。开始剪切的 x 坐标位置。
-									sy: role.sy, //可选。开始剪切的 y 坐标位置。
-									swidth: role.swidth, //可选。被剪切图像的宽度。
-									sheight: role.sheight, //可选。被剪切图像的高度。
-									width: role.width,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-									height: role.height//可选。要使用的图像的高度。（伸展或缩小图像）
-								}, 
-								{
-									img: barrier.img,
-									x: barrier.x,
-									y: barrier.y,
-									sx: barrier.sx, //可选。开始剪切的 x 坐标位置。
-									sy: barrier.sy, //可选。开始剪切的 y 坐标位置。
-									swidth: barrier.swidth, //可选。被剪切图像的宽度。
-									sheight: barrier.sheight, //可选。被剪切图像的高度。
-									width: barrier.width,	//可选。要使用的图像的宽度。（伸展或缩小图像）
-									height: barrier.height//可选。要使用的图像的高度。（伸展或缩小图像）
-								},
-								status);
+			let status = me.simpleCheck(role, barrier);
 
-				if(result){
-					me.setStatus(STATE[3]);
-					return false;
-				}							
+			if(status.join('') != '0000' ){
+				result = me.deepCheck(role, barrier, status);
 			}
 		}
-		
-		
-		role.sx = (main_settings.roleSwidth + 2) * role.rolePerform;
 		
 		//清空画布
 		map.clear();
 		
 		//玩家跳跃动画
 		if(role.ready){
+			role.sx = (main_settings.roleSwidth + 2) * role.rolePerform;
 			role.render();
 			if(role.jump == 'up'){
 				role.y -= main_settings.roleSpeedUp;
@@ -241,7 +239,7 @@ const main = {
 		}
 		
 		//路线移动
-		renderLine();
+		me.renderLine();
 		movingLineBeen += main_settings.movingLineSpeed;
 		if(movingLineBeen >= main_settings.movingLineItem){
 			colors
@@ -258,6 +256,25 @@ const main = {
 		}else{
 			this.createBarrier();
 		}
+		if(result && barrier.x > role.x){
+			me.setStatus(STATE[3]);
+			return false;
+		}
+
+		//碰撞检测
+		if(barrier.ready && role.ready){
+			let status = me.simpleCheck(role, barrier);
+			if(status.join('') != '0000' ){
+				let result2 = me.deepCheck(role, barrier, status);
+			}	
+		}
+
+		//检查到碰撞
+		if(result && result2){
+			me.setStatus(STATE[3]);
+			return false;
+			
+		}
 
 		//帧动画
 		main_settings.crf = util.raf(function(){
@@ -265,9 +282,6 @@ const main = {
 		});
 		return this;
 	},
-	$start: $('.js-start'),
-	$reset: $('.js-reset'),
-	$canvas: $('#js-canvas'),
 	bindEvent(){
 		var me = this;
 		me.$start
@@ -341,13 +355,6 @@ const main = {
 		}
 		return this;
 	},
-	setBarrierX(){
-		let $canvas = this.$canvas,
-			width = parseInt(getStyle($canvas, 'width'), 10);
-		barrier.x = width + main_settings.barrierHideWidth;
-		main_settings.barrierX = width + main_settings.barrierHideWidth;
-		return this;
-	},
 	init(){
 		this
 			.setColors()
@@ -356,13 +363,15 @@ const main = {
 
 	}
 }
-AOP.after('setStatus', 
+AOP.after(
+	'setStatus', 
 	function(){
 		if(main.status != STATE[1]){
 			role.stopChangePerform();	
 		}
 	},
-	main);
+	main
+);
 main.init();
 
 

@@ -45,16 +45,27 @@ let collision = {
     *@param a {object} 
     	被检测的对象 :
     	{
-    		img: img dom元素<即两个碰撞物其中一个>, 
-    		pos: {x: 坐标x, y: 坐标y}, 
-    		size:{x: width, y: height}
+    		x: role.x, //在canvas里面的坐标x
+        y: role.y, //在canvas里面的坐标y
+        sx: role.sx, //可选。开始剪切的 x 坐标位置。
+        sy: role.sy, //可选。开始剪切的 y 坐标位置。
+        swidth: role.swidth, //可选。被剪切图像的宽度。
+        sheight: role.sheight, //可选。被剪切图像的高度。
+        width: role.width,  //可选。要使用的图像的宽度。（伸展或缩小图像）
+        height: role.height//可选。要使用的图像的高度。（伸展或缩小图像）
     	}
     *@param b{object}	
     	被检测的对象 :
     	{
     		img: img dom元素<即两个碰撞物其中一个>, 
-    		pos: {x: 坐标x, y: 坐标y}, 
-    		size:{x: width, y: height}
+    		x: role.x, //在canvas里面的坐标x
+        y: role.y, //在canvas里面的坐标y
+        sx: role.sx, //可选。开始剪切的 x 坐标位置。
+        sy: role.sy, //可选。开始剪切的 y 坐标位置。
+        swidth: role.swidth, //可选。被剪切图像的宽度。
+        sheight: role.sheight, //可选。被剪切图像的高度。
+        width: role.width,  //可选。要使用的图像的宽度。（伸展或缩小图像）
+        height: role.height//可选。要使用的图像的高度。（伸展或缩小图像）
     	}
     *@param rect {array} 数组，由check返回的值
     */
@@ -71,7 +82,7 @@ let collision = {
   			rect[3] - rect[1]).data;
 
   		_ctx.clearRect(0, 0, b.x, b.y);
-  		//_ctx.drawImage(b.img, 0, 0, b.size.x, b.size.y);
+  		//_ctx.drawImage(b.img, 0, 0, b.x, b.y);
       _ctx.drawImage(b.img, b.sx, b.sy, b.swidth, b.sheight, 0, 0, b.width, b.height);
   		let data2 = _ctx.getImageData(rect[0] - b.x, 
   			rect[1] - b.y, 
@@ -91,20 +102,6 @@ let collision = {
     *@thoery 先画一张图，然后将混合模式改为source-in，这时再画图， 
     	新图片会仅仅出现与原有内容重叠的地方 ，其他地方透明度变为 0，
     	这时就可以通过判断是否所有像素都透明来判断碰撞了。
-    *@param a {object} 
-    	被检测的对象 :
-    	{
-    		img: img dom元素<即两个碰撞物其中一个>, 
-    		pos: {x: 坐标x, y: 坐标y}, 
-    		size:{x: width, y: height}
-    	}
-    *@param b{object}	
-    	被检测的对象 :
-    	{
-    		img: img dom元素<即两个碰撞物其中一个>, 
-    		pos: {x: 坐标x, y: 坐标y}, 
-    		size:{x: width, y: height}
-    	}
     *@param rect {array} 数组，由check返回的值
     */
     atomCheck_2(a, b ,rect){
@@ -113,14 +110,15 @@ let collision = {
 		  	_ctx = canvas.getContext('2d');
 
 		  // 将 (0, 0) 作为基准点，将 a 放入 (0, 0) 位置
-		_ctx.drawImage(a.img, 0, 0, a.size.x, a.size.y);
+		//_ctx.drawImage(a.img, 0, 0, a.x, a.y);
+    _ctx.drawImage(a.img, a.sx, a.sy, a.swidth, a.sheight, 0, 0, a.width, a.height);
 		_ctx.globalCompositeOperation = 'source-in';
-		_ctx.drawImage(b.img, b.pos.x - a.pos.x, 
-			b.pos.y - a.pos.y, 
-			b.size.x, b.size.y);
+		_ctx.drawImage(b.img, b.x - a.x, 
+			b.y - a.y, 
+			b.x, b.y);
 
-		let data = _ctx.getImageData(rect[0] - a.pos.x, 
-		  	rect[1] - a.pos.y, 
+		let data = _ctx.getImageData(rect[0] - a.x, 
+		  	rect[1] - a.y, 
 		  	rect[2] - rect[0], 
 		  	rect[3] - rect[1]).data;
 
